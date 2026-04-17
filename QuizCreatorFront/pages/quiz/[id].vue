@@ -118,8 +118,8 @@ const currentQuestion = computed(() => quiz.value?.questions[currentQuestionInde
 
 onMounted(async () => {
   try {
-    const config = useRuntimeConfig()
-    const response = await $fetch(`http://localhost:8000/api/quizzes/${route.params.id}`)
+    const { apiBase } = useRuntimeConfig().public
+    const response = await $fetch(`${apiBase}/quizzes/${route.params.id}`)
     
     if (response.status && response.quiz) {
       quiz.value = response.quiz
@@ -160,7 +160,8 @@ const nextQuestion = async () => {
       const token = localStorage.getItem('auth_token')
       if (token) {
         try {
-          const response = await $fetch('http://localhost:8000/api/scores', {
+          const { apiBase } = useRuntimeConfig().public
+          const response = await $fetch(`${apiBase}/scores`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`

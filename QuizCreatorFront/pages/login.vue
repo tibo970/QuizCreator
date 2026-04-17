@@ -77,7 +77,8 @@ const handleLogin = async () => {
   isLoading.value = true
   try {
     const config = useRuntimeConfig()
-    const response = await $fetch('http://localhost:8000/api/login', {
+    const { apiBase } = useRuntimeConfig().public
+    const response = await $fetch(`${apiBase}/login`, {
       method: 'POST',
       body: {
         email: email.value,

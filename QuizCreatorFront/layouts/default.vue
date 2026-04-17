@@ -68,7 +68,8 @@ const logout = async () => {
   const token = localStorage.getItem('auth_token')
   if (token) {
     try {
-      await $fetch('http://localhost:8000/api/logout', {
+      const { apiBase } = useRuntimeConfig().public
+      await $fetch(`${apiBase}/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

@@ -93,7 +93,8 @@ const getRandomColor = (id) => {
 
 onMounted(async () => {
   try {
-    const response = await $fetch('http://localhost:8000/api/quizzes')
+    const { apiBase } = useRuntimeConfig().public
+    const response = await $fetch(`${apiBase}/quizzes`)
     if (response.status && response.quiz) {
       // On ne garde que les 3 derniers pour la page d'accueil
       quizzes.value = response.quiz.slice(0, 3)

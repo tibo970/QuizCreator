@@ -119,8 +119,8 @@ const handleRegister = async () => {
   notification.value.show = false
   
   try {
-    const config = useRuntimeConfig()
-    const response = await $fetch('http://localhost:8000/api/register', {
+    const { apiBase } = useRuntimeConfig().public
+    const response = await $fetch(`${apiBase}/register`, {
       method: 'POST',
       body: {
         name: name.value,

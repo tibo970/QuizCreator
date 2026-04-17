@@ -62,7 +62,8 @@ const loading = ref(true)
 const fetchMyQuizzes = async () => {
   try {
     const token = localStorage.getItem('auth_token')
-    const response = await $fetch('http://localhost:8000/api/my-quizzes', {
+    const { apiBase } = useRuntimeConfig().public
+    const response = await $fetch(`${apiBase}/my-quizzes`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -83,7 +84,8 @@ const deleteQuiz = async (id) => {
   
   try {
     const token = localStorage.getItem('auth_token')
-    await $fetch(`http://localhost:8000/api/quizzes/${id}`, {
+    const { apiBase } = useRuntimeConfig().public
+    await $fetch(`${apiBase}/quizzes/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`

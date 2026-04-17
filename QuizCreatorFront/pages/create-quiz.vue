@@ -287,7 +287,8 @@ const submitQuiz = async () => {
   isSubmitting.value = true
   try {
     const token = localStorage.getItem('auth_token')
-    await $fetch('http://localhost:8000/api/quizzes', {
+    const { apiBase } = useRuntimeConfig().public
+    await $fetch(`${apiBase}/quizzes`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
