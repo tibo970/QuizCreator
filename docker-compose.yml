@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: node:20-alpine
+    container_name: quizcreator-frontend
+    working_dir: /app
+    volumes:
+      - ./QuizCreatorFront:/app
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev"
+    environment:
+      - HOST=0.0.0.0
+      - NUXT_PUBLIC_API_BASE=http://localhost:8000/api
+
+  backend:
+    image: serversideup/php:8.3-cli
+    container_name: quizcreator-backend
+    user: "root"
+    working_dir: /var/www/html
+    volumes:
+      - ./quizCreatorBack:/var/www/html
+    ports:
+      - "8000:8000"
+    command: sh -c "composer install && php artisan serve --host=0.0.0.0 --port=8000"
+    environment:
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/var/www/html/database/database.sqlite
+    # SQLite est utilisé par défaut dans Laravel 11, ce qui évite de devoir configurer un container MySQL pour commencer rapidement.
+
+  # Optionnel: Si tu veux passer sur MySQL plus tard, décommente ceci :
+  # db:
+  #   image: mysql:8.0
+  #   ports:
+  #     - "3306:3306"
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=password
+  #     - MYSQL_DATABASE=quizcreator
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+
+# volumes:
+#   mysql_data:
