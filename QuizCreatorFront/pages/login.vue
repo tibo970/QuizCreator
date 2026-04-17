@@ -87,6 +87,11 @@ const handleLogin = async () => {
     
     if (process.client) {
       localStorage.setItem('auth_token', response.access_token)
+      localStorage.setItem('user', JSON.stringify(response.user))
+      
+      // Mettre à jour l'état global
+      const userState = useState('user')
+      userState.value = response.user
     }
     
     alert('Connexion réussie !')

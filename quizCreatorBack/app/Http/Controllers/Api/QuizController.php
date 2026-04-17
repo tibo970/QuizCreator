@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ProfanityFilter;
 use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use Illuminate\Http\Request;
@@ -52,6 +53,36 @@ class QuizController extends Controller
             'questions.*.answers.*.verite' => 'required|boolean',
         ]);
 
+        // Vérification des mots vulgaires dans le titre et la description
+        if (ProfanityFilter::contains($request->title)) {
+            return response()->json([
+                'message' => '🚫 Le titre contient du contenu inapproprié. Veuillez le modifier.'
+            ], 422);
+        }
+
+        if (ProfanityFilter::contains($request->description)) {
+            return response()->json([
+                'message' => '🚫 La description contient du contenu inapproprié. Veuillez la modifier.'
+            ], 422);
+        }
+
+        // Vérification des mots vulgaires dans les questions et réponses
+        foreach ($request->questions as $index => $question) {
+            if (ProfanityFilter::contains($question['libelleQ'])) {
+                return response()->json([
+                    'message' => "🚫 La question " . ($index + 1) . " contient du contenu inapproprié."
+                ], 422);
+            }
+
+            foreach ($question['answers'] as $answer) {
+                if (ProfanityFilter::contains($answer['libelleR'])) {
+                    return response()->json([
+                        'message' => "🚫 Une réponse de la question " . ($index + 1) . " contient du contenu inapproprié."
+                    ], 422);
+                }
+            }
+        }
+
         // Vérification logique : chaque question doit avoir au moins une vraie réponse
         foreach ($request->questions as $index => $question) {
             $hasTrue = collect($question['answers'])->contains('verite', true);
@@ -69,7 +100,7 @@ class QuizController extends Controller
             'title' => $request->title,
             'category' => $request->category,
             'description' => $request->description,
-            'cover' => 'default.png' // Default cover
+            'cover' => $request->cover_image_url ?: 'default.png'
         ]);
 
         foreach ($request->questions as $qData) {

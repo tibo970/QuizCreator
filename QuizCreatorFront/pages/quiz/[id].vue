@@ -9,11 +9,19 @@
     </div>
 
     <div v-else-if="quiz" class="bg-slate-800/80 backdrop-blur-xl border border-slate-700 rounded-3xl overflow-hidden shadow-2xl">
-      <!-- Header -->
-      <div class="h-48 bg-gradient-to-r from-indigo-600 to-purple-600 relative flex items-end p-8">
-        <div class="absolute inset-0 bg-black/20"></div>
+      <!-- Header avec image de couverture -->
+      <div class="h-48 relative flex items-end p-8 overflow-hidden">
+        <!-- Image Unsplash si disponible, sinon gradient -->
+        <img 
+          v-if="quiz.cover && quiz.cover !== 'default.png'" 
+          :src="quiz.cover" 
+          class="absolute inset-0 w-full h-full object-cover"
+          alt="Couverture du quiz"
+        >
+        <div v-else class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600"></div>
+        <div class="absolute inset-0 bg-black/40"></div>
         <div class="relative z-10 w-full">
-          <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold text-white mb-3">
+          <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold text-white mb-3 capitalize">
             {{ quiz.category }}
           </span>
           <h1 class="text-3xl md:text-4xl font-extrabold text-white">{{ quiz.title }}</h1>

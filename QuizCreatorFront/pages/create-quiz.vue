@@ -53,6 +53,67 @@
               required
             ></textarea>
           </div>
+
+          <!-- Image picker Unsplash -->
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-slate-300">Image de couverture</label>
+            
+            <!-- Aperçu image sélectionnée -->
+            <div v-if="quiz.cover_image_url" class="relative rounded-xl overflow-hidden h-48 group">
+              <img :src="quiz.cover_image_url" class="w-full h-full object-cover" alt="Couverture du quiz">
+              <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button type="button" @click="quiz.cover_image_url = ''" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors">
+                  Changer l'image
+                </button>
+              </div>
+            </div>
+
+            <!-- Barre de recherche Unsplash -->
+            <div v-else class="space-y-3">
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <span class="absolute inset-y-0 left-3 flex items-center text-slate-500">🔍</span>
+                  <input
+                    type="text"
+                    v-model="imageSearch"
+                    @keyup.enter="searchImages"
+                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Rechercher une image (ex: mario, space, nature)..."
+                  >
+                </div>
+                <button
+                  type="button"
+                  @click="searchImages"
+                  :disabled="imageLoading"
+                  class="px-5 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-all disabled:opacity-50 whitespace-nowrap"
+                >
+                  <span v-if="!imageLoading">Rechercher</span>
+                  <svg v-else class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                </button>
+              </div>
+
+              <!-- Grille résultats Unsplash -->
+              <div v-if="unsplashResults.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                <button
+                  v-for="img in unsplashResults"
+                  :key="img.id"
+                  type="button"
+                  @click="selectImage(img)"
+                  class="relative h-24 rounded-lg overflow-hidden group border-2 border-transparent hover:border-indigo-500 transition-all"
+                >
+                  <img :src="img.urls.small" class="w-full h-full object-cover" :alt="img.alt_description">
+                  <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span class="text-white text-2xl">✓</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Placeholder si aucune recherche -->
+              <div v-else class="flex items-center justify-center h-28 border-2 border-dashed border-slate-700 rounded-xl text-slate-500 text-sm">
+                🖼️ Cherchez une image pour illustrer votre quiz
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Questions -->
@@ -112,11 +173,19 @@
           <NuxtLink to="/" class="px-6 py-3 text-slate-300 hover:text-white font-medium transition-colors">
             Annuler
           </NuxtLink>
-          <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] transform hover:-translate-y-0.5">
-            Publier le Quiz
+          <button type="submit" :disabled="isSubmitting" class="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] transform hover:-translate-y-0.5">
+            <span v-if="!isSubmitting">Publier le Quiz</span>
+            <span v-else>Publication...</span>
           </button>
         </div>
       </form>
+
+      <!-- Toast d'erreur -->
+      <div v-if="errorMsg" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-red-600/95 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-2xl border border-red-400/30 max-w-lg">
+        <span class="text-xl">🚫</span>
+        <p class="text-sm font-medium">{{ errorMsg }}</p>
+        <button @click="errorMsg = ''" class="ml-2 text-white/70 hover:text-white text-lg leading-none">✕</button>
+      </div>
     </div>
   </div>
 </template>
@@ -126,6 +195,48 @@ import { ref } from 'vue'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'Créer un Quiz - QuizCreator' })
+
+const UNSPLASH_ACCESS_KEY = 'hkEftQuEMb-imx3s_06zIYKKXMdOKS1cEkdAtKAByJ8'
+
+const imageSearch = ref('')
+const unsplashResults = ref([])
+const imageLoading = ref(false)
+const isSubmitting = ref(false)
+const errorMsg = ref('')
+
+const showError = (msg) => {
+  errorMsg.value = msg
+  setTimeout(() => { errorMsg.value = '' }, 6000)
+}
+
+const searchImages = async () => {
+  if (!imageSearch.value.trim()) return
+  imageLoading.value = true
+  unsplashResults.value = []
+  try {
+    const data = await $fetch(`https://api.unsplash.com/search/photos`, {
+      params: {
+        query: imageSearch.value,
+        per_page: 8,
+        orientation: 'landscape'
+      },
+      headers: {
+        Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`
+      }
+    })
+    unsplashResults.value = data.results
+  } catch (e) {
+    console.error('Erreur Unsplash', e)
+  } finally {
+    imageLoading.value = false
+  }
+}
+
+const selectImage = (img) => {
+  quiz.value.cover_image_url = img.urls.regular
+  unsplashResults.value = []
+  imageSearch.value = ''
+}
 
 const getEmptyQuestion = () => ({
   libelleQ: '',
@@ -142,6 +253,7 @@ const quiz = ref({
   title: '',
   category: '',
   description: '',
+  cover_image_url: '',
   questions: [getEmptyQuestion()]
 })
 
@@ -157,7 +269,10 @@ const removeQuestion = (index) => {
 
 const submitQuiz = async () => {
   const payload = {
-    ...quiz.value,
+    title: quiz.value.title,
+    category: quiz.value.category,
+    description: quiz.value.description,
+    cover_image_url: quiz.value.cover_image_url || '',
     questions: quiz.value.questions.map(q => ({
       libelleQ: q.libelleQ,
       answers: q.answers.map((a, i) => ({
@@ -167,21 +282,26 @@ const submitQuiz = async () => {
     }))
   }
   
+  console.log('📤 Payload envoyé :', JSON.stringify({ cover_image_url: payload.cover_image_url }))
+  
+  isSubmitting.value = true
   try {
     const token = localStorage.getItem('auth_token')
     await $fetch('http://localhost:8000/api/quizzes', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
       body: payload
     })
     
-    alert('Quiz créé avec succès !')
     navigateTo('/explore')
   } catch (error) {
     console.error(error)
-    alert(error.data?.message || 'Erreur lors de la création du quiz.')
+    showError(error.data?.message || 'Erreur lors de la création du quiz.')
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>

@@ -53,9 +53,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 
-const user = ref(null)
+const user = useState('user', () => null)
 
 onMounted(() => {
   const userData = localStorage.getItem('user')

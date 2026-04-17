@@ -134,6 +134,9 @@ const handleRegister = async () => {
     if (process.client) {
       localStorage.setItem('auth_token', response.access_token)
       localStorage.setItem('user', JSON.stringify(response.user))
+      
+      const userState = useState('user')
+      userState.value = response.user
     }
     
     showNotification('Inscription réussie ! Connexion en cours...', 'success')

@@ -36,75 +36,72 @@
         </NuxtLink>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Mock Quiz Card 1 -->
-        <div class="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] hover:-translate-y-1 cursor-pointer">
-          <div class="h-48 bg-slate-700 relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10"></div>
-            <!-- Mock image placeholder -->
-            <div class="w-full h-full bg-gradient-to-br from-red-500 to-yellow-500 transform group-hover:scale-105 transition-transform duration-700"></div>
+      <div v-if="loading" class="flex justify-center py-20 w-full">
+        <svg class="animate-spin h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+      </div>
+      <div v-else-if="quizzes.length === 0" class="text-center py-10 text-slate-400 w-full">
+        Aucun quiz tendance pour le moment. Soyez le premier à en créer un !
+      </div>
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <NuxtLink :to="`/quiz/${quiz.id}`" v-for="quiz in quizzes" :key="quiz.id" class="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] hover:-translate-y-1 cursor-pointer flex flex-col">
+          <div class="h-48 relative overflow-hidden">
+            <img v-if="quiz.cover && quiz.cover !== 'default.png'" :src="quiz.cover" class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" alt="">
+            <div v-else :class="`absolute inset-0 bg-gradient-to-br ${getRandomColor(quiz.id)} transform group-hover:scale-105 transition-transform duration-700`"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent z-10"></div>
             <div class="absolute bottom-3 left-3 z-20">
-              <span class="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-xs font-semibold text-white border border-white/10">Mario</span>
+              <span class="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-xs font-semibold text-white border border-white/10 capitalize">{{ quiz.category }}</span>
             </div>
           </div>
-          <div class="p-5">
-            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Le Quiz Ultime de Mario</h3>
-            <p class="text-slate-400 text-sm line-clamp-2 mb-4">Testez vos connaissances sur l'univers du plombier le plus célèbre du monde du jeu vidéo !</p>
+          <div class="p-5 flex flex-col flex-grow">
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors line-clamp-1">{{ quiz.title }}</h3>
+            <p class="text-slate-400 text-sm line-clamp-2 mb-4 flex-grow">{{ quiz.description }}</p>
             <div class="flex justify-between items-center text-sm text-slate-500">
-              <span class="flex items-center gap-1">⏱️ 10 questions</span>
-              <span class="flex items-center gap-1">🎮 1.2k joueurs</span>
+              <span class="flex items-center gap-1">⏱️ {{ quiz.questions_count }} questions</span>
+              <span class="flex items-center gap-1">Par {{ quiz.user ? quiz.user.name : 'Anonyme' }}</span>
             </div>
           </div>
-        </div>
-
-        <!-- Mock Quiz Card 2 -->
-        <div class="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] hover:-translate-y-1 cursor-pointer">
-          <div class="h-48 bg-slate-700 relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10"></div>
-            <div class="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 transform group-hover:scale-105 transition-transform duration-700"></div>
-            <div class="absolute bottom-3 left-3 z-20">
-              <span class="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-xs font-semibold text-white border border-white/10">Pokémon</span>
-            </div>
-          </div>
-          <div class="p-5">
-            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Connaissez-vous vos Pokémon ?</h3>
-            <p class="text-slate-400 text-sm line-clamp-2 mb-4">Seuls les vrais maîtres Pokémon pourront obtenir 100% à ce quiz difficile.</p>
-            <div class="flex justify-between items-center text-sm text-slate-500">
-              <span class="flex items-center gap-1">⏱️ 15 questions</span>
-              <span class="flex items-center gap-1">🎮 850 joueurs</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mock Quiz Card 3 -->
-        <div class="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] hover:-translate-y-1 cursor-pointer">
-          <div class="h-48 bg-slate-700 relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10"></div>
-            <div class="w-full h-full bg-gradient-to-br from-yellow-700 to-yellow-500 transform group-hover:scale-105 transition-transform duration-700"></div>
-            <div class="absolute bottom-3 left-3 z-20">
-              <span class="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-xs font-semibold text-white border border-white/10">Harry Potter</span>
-            </div>
-          </div>
-          <div class="p-5">
-            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Harry Potter pour les experts</h3>
-            <p class="text-slate-400 text-sm line-clamp-2 mb-4">Quiz réservé aux sorciers de niveau ASPIC ! Moldu s'abstenir.</p>
-            <div class="flex justify-between items-center text-sm text-slate-500">
-              <span class="flex items-center gap-1">⏱️ 20 questions</span>
-              <span class="flex items-center gap-1">🎮 3.4k joueurs</span>
-            </div>
-          </div>
-        </div>
+        </NuxtLink>
       </div>
     </section>
   </div>
 </template>
 
 <script setup>
-// Config page meta if needed
+import { ref, onMounted } from 'vue'
+
 useHead({
   title: 'QuizCreator - Accueil',
   meta: [
     { name: 'description', content: 'Créez et jouez à des Quiz extraordinaires.' }
   ]
+})
+
+const quizzes = ref([])
+const loading = ref(true)
+
+const colors = [
+  'from-red-500 to-yellow-500',
+  'from-blue-500 to-purple-600',
+  'from-yellow-700 to-yellow-500',
+  'from-emerald-500 to-teal-400',
+  'from-pink-500 to-rose-400'
+]
+
+const getRandomColor = (id) => {
+  return colors[(id || 0) % colors.length]
+}
+
+onMounted(async () => {
+  try {
+    const response = await $fetch('http://localhost:8000/api/quizzes')
+    if (response.status && response.quiz) {
+      // On ne garde que les 3 derniers pour la page d'accueil
+      quizzes.value = response.quiz.slice(0, 3)
+    }
+  } catch (error) {
+    console.error('Erreur de chargement', error)
+  } finally {
+    loading.value = false
+  }
 })
 </script>
